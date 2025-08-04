@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pocket-Watcher - Monthly Reports</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Money-Tip</h1>
+        <div class="report-controls">
+            <button class="back-btn" onclick="goHome()">Home</button>
+            <select id="monthFilter"></select>
+            <select id="rangeFilter">
+                <option value="1">Last Month</option>
+                <option value="3">Last 3 Months</option>
+                <option value="6">Last 6 Months</option>
+                <option value="12">Last 12 Months</option>
+                <option value="all">All Months</option>
+            </select>
+        </div>
+        <div style="margin:20px 0;text-align:center;">
+            <canvas id="monthsPieChart" width="220" height="140"></canvas>
+            <div id="pieStats"></div>
+        </div>
+        <div id="reportSummary" class="report-summary"></div>
+        <div id="reportContent"></div>
+    </div>
+    <script>
+    function goHome() {
+        window.location.href = 'index.html';
+    }
+    function getTransactions() {
+        const tx = localStorage.getItem('bt_transactions');
+        return tx ? JSON.parse(tx) : [];
+    }
+    function getMonths(transactions) {
+        return Array.from(new Set(transactions.map(t => t.month))).sort();
+    }
+    function renderFilters(months) {
+        const monthSel = document.getElementById('monthFilter');
+        monthSel.innerHTML = months.map(m => `<option value="${m}">${m}</option>`).join('');
+    }
+    function getBudgetGoal() {
+        const goal = localStorage.getItem('bt_budgetGoal');
+        return goal ? parseFloat(goal) : null;
+    }
+    function renderSummary(months, transactions, selectedMonth) {
+        const monthTx = transactions.filter(t => t.month === selectedMonth);
+        const income = monthTx.filter(t => t.type === 'Income').reduce((a,b)=>a+b.amount,0);
+        const expense = monthTx.filter(t => t.type === 'Expense').reduce((a,b)=>a+b.amount,0);
+        const balance = income - expense;
+        const goal = getBudgetGoal();
+        let goalStatus = '';
+        let goalClass = 'report-neutral';
+        if (goal) {
+            if (expense > goal) {
+                goalStatus = 'Exceeded';
+                goalClass = 'report-negative';
+            } else if (expense > 0.8 * goal) {
+                goalStatus = 'Near Limit';
+                goalClass = 'report-negative';
+            } else {
+                goalStatus = 'Within Goal';
+                goalClass = 'report-positive';
+            }
+        }
+        document.getElementById('reportSummary').innerHTML = `
+            <div class="report-card">
+                <h3>Income</h3>
+                <div class="report-amount report-positive">R${income.toFixed(2)}</div>
+            </div>
+            <div class="report-card">
+                <h3>Expenses</h3>
+                <div class="report-amount report-negative">R${expense.toFixed(2)}</div>
+                <div style="font-size:0.95em;margin-top:8px;" class="${goalClass}">Goal: R${goal ? goal.toFixed(2) : 'N/A'}<br>Status: ${goalStatus}</div>
+            </div>
+            <div class="report-card">
+                <h3>Balance</h3>
+                <div class="report-amount ${balance>=0?'report-positive':'report-negative'}">R${balance.toFixed(2)}</div>
+            </div>
+        `;
+    }
+    function renderPieChart(months, transactions, filterMonths) {
+        const ctx = document.getElementById('monthsPieChart').getContext('2d');
+        let success = 0, exceeded = 0, saved = 0, deficit = 0, totalSaved = 0, totalExceeded = 0;
+        const goal = getBudgetGoal();
+        filterMonths.forEach(m => {
+            const monthTx = transactions.filter(t => t.month === m);
+            const expense = monthTx.filter(t => t.type === 'Expense').reduce((a,b)=>a+b.amount,0);
+            if (!goal) return;
+            if (expense > goal) {
+                exceeded++;
+                totalExceeded += (expense - goal);
+            } else {
+                success++;
+                totalSaved += (goal - expense);
+                if (expense < goal) saved++;
+            }
+            if (expense < 0) deficit++;
+        });
+        const data = {
+            labels: ['Success', 'Exceeded', 'Saved'],
+            datasets: [{
+                data: [success, exceeded, saved],
+                backgroundColor: ['#6a82fb', '#fc5c7d', '#45a049']
+            }]
+        };
+        if (window.monthsPieChartInstance) window.monthsPieChartInstance.destroy();
+        window.monthsPieChartInstance = new Chart(ctx, {
+            type: 'pie',
+            data,
+            options: { plugins: { legend: { position: 'bottom' } } }
+        });
+        // Show summary figures
+        let rate = filterMonths.length ? (success / filterMonths.length * 100).toFixed(1) : 0;
+        document.getElementById('pieStats').innerHTML = `
+            <div style="margin:18px 0 8px 0;font-weight:bold;">Budget Success Rate: <span style="color:#6a82fb;">${rate}%</span></div>
+            <div>Total Amount Exceeded/Deficit: <span style="color:#fc5c7d;">R${totalExceeded.toFixed(2)}</span></div>
+            <div>Amount Saved (within budget): <span style="color:#45a049;">R${totalSaved.toFixed(2)}</span></div>
+        `;
+    }
+    function renderReport() {
+        const transactions = getTransactions();
+        const months = getMonths(transactions);
+        const selectedMonth = document.getElementById('monthFilter').value;
+        let range = document.getElementById('rangeFilter').value;
+        let idx = months.indexOf(selectedMonth);
+        let filterMonths = [];
+        if (range === 'all') {
+            filterMonths = months;
+        } else {
+            range = parseInt(range);
+            filterMonths = months.slice(Math.max(0, idx-range+1), idx+1);
+        }
+        renderSummary(months, transactions, selectedMonth);
+        renderPieChart(months, transactions, filterMonths);
+        let html = '';
+        filterMonths.forEach((m, i) => {
+            const monthTx = transactions.filter(t => t.month === m);
+            const income = monthTx.filter(t => t.type === 'Income').reduce((a,b)=>a+b.amount,0);
+            const expense = monthTx.filter(t => t.type === 'Expense').reduce((a,b)=>a+b.amount,0);
+            html += `<div style="margin-bottom:15px;"><strong>${m}</strong>: Income: <span style="color:#6a82fb;">R${income.toFixed(2)}</span>, Expenses: <span style="color:#fc5c7d;">R${expense.toFixed(2)}</span>, Balance: <span style="color:${income-expense>=0?'#6a82fb':'#fc5c7d'};">R${(income-expense).toFixed(2)}</span></div>`;
+            if (i > 0) {
+                const prevIncome = filterMonths[i-1] ? transactions.filter(t => t.month === filterMonths[i-1] && t.type === 'Income').reduce((a,b)=>a+b.amount,0) : 0;
+                const prevExpense = filterMonths[i-1] ? transactions.filter(t => t.month === filterMonths[i-1] && t.type === 'Expense').reduce((a,b)=>a+b.amount,0) : 0;
+                const incomeDiff = income - prevIncome;
+                const expenseDiff = expense - prevExpense;
+                html += `<div style="margin-bottom:10px;">Compared to previous: Income: <span style="color:${incomeDiff>=0?'#6a82fb':'#fc5c7d'}">${incomeDiff>=0?'+':''}${incomeDiff.toFixed(2)}</span>, Expenses: <span style="color:${expenseDiff<=0?'#6a82fb':'#fc5c7d'}">${expenseDiff<=0?'+':''}${expenseDiff.toFixed(2)}</span></div>`;
+            }
+        });
+        document.getElementById('reportContent').innerHTML = html;
+    }
+    window.onload = function() {
+        const transactions = getTransactions();
+        const months = getMonths(transactions);
+        if (months.length === 0) {
+            document.getElementById('reportContent').innerHTML = '<div class="empty-message">No monthly data found.</div>';
+            return;
+        }
+        renderFilters(months);
+        document.getElementById('monthFilter').onchange = renderReport;
+        document.getElementById('rangeFilter').onchange = renderReport;
+        document.getElementById('monthFilter').value = months[months.length-1];
+        document.getElementById('rangeFilter').value = '3'; // Default to last 3 months
+        renderReport();
+    };
+    </script>
+</body>
+</html>

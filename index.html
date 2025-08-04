@@ -1,0 +1,97 @@
+<!-- Budget Goal Modal -->
+        <div id="goalModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;">
+            <div style="background:white;padding:30px;border-radius:12px;max-width:350px;width:90%;text-align:center;box-shadow:0 2px 16px rgba(106,130,251,0.15);">
+                <h2 style="color:#6a82fb;">Set Your Budget Goal</h2>
+                <input type="number" id="modalBudgetGoal" placeholder="Enter budget goal" step="0.01" style="width:80%;margin-bottom:18px;">
+                <div id="goalModalError" style="color:#fc5c7d;font-weight:bold;margin-bottom:10px;"></div>
+                <button onclick="setModalBudgetGoal()" style="background:#6a82fb;color:#fff;padding:10px 24px;border:none;border-radius:6px;font-weight:bold;">Set Goal</button>
+            </div>
+        </div>
+        <script>
+        function setModalBudgetGoal() {
+            var val = document.getElementById('modalBudgetGoal').value;
+            if (!val || parseFloat(val) <= 0) {
+                document.getElementById('goalModalError').textContent = 'Please enter a valid budget goal!';
+                return;
+            }
+            localStorage.setItem('bt_budgetGoal', val);
+            document.getElementById('goalModal').style.display = 'none';
+            location.reload();
+        }
+        </script>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Money-Tip</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div class="container">
+            <h1>Money-Tip</h1>
+
+
+
+            <!-- Budget Goal -->
+            <div class="form-section">
+                <h3>Set Budget Goal</h3>
+                <div class="form-row">
+                    <input type="number" id="budgetGoal" placeholder="Enter budget goal" step="0.01">
+                    <button onclick="setBudgetGoal()">Set Goal</button>
+                </div>
+                <div id="budgetProgressContainer" style="display:none; margin-top:10px;">
+                    <label for="budgetProgress">Progress:</label>
+                    <div style="background:#eee; border-radius:8px; overflow:hidden; height:24px;">
+                        <div id="budgetProgress" style="height:24px; width:0; background:#4caf50; transition:width 0.5s;"></div>
+                    </div>
+                    <span id="budgetProgressText"></span>
+                </div>
+                <div id="budgetAlert" style="color:#f44336; font-weight:bold; display:none; margin-top:8px;"></div>
+            </div>
+
+            <!-- Month Selector -->
+            <div class="form-section">
+                <h3>Select Month</h3>
+                <div class="form-row">
+                    <input type="month" id="monthSelector">
+                </div>
+            </div>
+
+            <!-- Add transaction -->
+            <div class="form-section">
+                <h3>Add Transaction</h3>
+                <div class="form-row">
+                    <input type="text" id="description" placeholder="Description">
+                    <input type="number" id="amount" placeholder="Amount" step="0.01">
+                    <select id="type" onchange="updateCategoryOptions()">
+                        <option value="Income">Income</option>
+                        <option value="Expense">Expense</option>
+                    </select>
+                    <select id="category">
+                        <!-- Categories will be populated by JS -->
+                    </select>
+                </div>
+                <div class="form-row">
+                    <button onclick="addTransaction()">Add Transaction</button>
+                    <button id="completeMonthBtn" onclick="completeMonth()" style="background:#ff9800;color:#fff;border:none;padding:10px 18px;border-radius:6px;font-weight:bold;">Complete Month</button>
+                </div>
+            </div>
+
+            <!-- Transaction list -->
+            <div>
+                <h3>Recent Transactions</h3>
+                <div id="transactionsList" style="display:none;"></div>
+            </div>
+
+            <!-- Export to PDF and Monthly Reports -->
+            <div style="margin-top:30px; text-align:center;">
+                <button onclick="exportToPDF()" style="padding:12px 24px; font-size:1em;">Export Monthly Data to PDF</button>
+                <a href="monthly-reports.html" style="display:none;">View Monthly Reports</a>
+            </div>
+        </div>
+        
+        <script src="chartjs-loader.js"></script>
+        <script src="script.js"></script>
+    </body>
+</html>

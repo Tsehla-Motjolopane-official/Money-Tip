@@ -1,0 +1,155 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background: linear-gradient(135deg, #6a82fb, #fc5c7d);
+    min-height: 100vh;
+    color: #222;
+}
+
+.container {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+h1 {
+    text-align: center;
+    color: #6a82fb;
+    margin-bottom: 30px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    letter-spacing: 2px;
+}
+
+/* Removed summary and card styles for mobile-first */
+/* Progress bar styles */
+#budgetProgressContainer {
+    width: 100%;
+}
+#budgetProgress {
+    background: #4caf50;
+    height: 24px;
+    border-radius: 8px;
+    transition: width 0.5s;
+}
+
+
+/* Responsive container for desktop and mobile */
+.container {
+    max-width: 800px;
+    width: 100%;
+    margin: 20px auto;
+    box-sizing: border-box;
+}
+
+/* Mobile-first form row */
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+@media (min-width: 600px) {
+    .form-row {
+        flex-direction: row;
+        gap: 10px;
+    }
+    .container { padding: 20px; }
+}
+
+.card h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    color: #666;
+}
+
+.amount {
+    font-size: 1.8em;
+    font-weight: bold;
+}
+
+.income { color: #6a82fb; }
+.expense { color: #fc5c7d; }
+.balance { color: #2196f3; }
+.balance.negative { color: #fc5c7d; }
+
+.form-section {
+    background: #f3f3fd;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(252,92,125,0.06);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+input, select, button {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+button {
+    background: #6a82fb;
+    color: #fff;
+    border: 1px solid #6a82fb;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #fc5c7d;
+    border-color: #fc5c7d;
+}
+
+.delete-btn {
+    background: #fc5c7d;
+    border: 1px solid #fc5c7d;
+    padding: 5px 10px;
+    font-size: 18px;
+    color: #fff;
+}
+
+.transaction {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin: 10px 0;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.transaction.income-item { border-left-color: #6a82fb; }
+.transaction.expense-item { border-left-color: #fc5c7d; }
+
+.transaction-info {
+    flex-grow: 1;
+}
+
+.transaction-amount {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.empty-message {
+    text-align: center;
+    color: #666;
+    padding: 40px;
+}
+
+@media (max-width: 800px) {
+    .summary { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+}
