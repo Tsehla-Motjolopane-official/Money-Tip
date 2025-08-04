@@ -1,7 +1,5 @@
-# Money-Tip
 
-
-# 💰 Budget Tracker
+# 💰 Money-Tip
 
 A simple, responsive budget tracker built with HTML, CSS, and JavaScript. This app allows users to record income and expenses, view their current balance, and get a quick overview of their spending habits — all in the browser, with no backend required.
 
